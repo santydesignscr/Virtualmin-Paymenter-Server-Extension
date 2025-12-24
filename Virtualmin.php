@@ -82,7 +82,7 @@ class Virtualmin extends Server
             ],
             [
                 'name' => 'verify_ssl',
-                'type' => 'boolean',
+                'type' => 'checkbox',
                 'label' => 'Verify SSL Certificate',
                 'default' => false,
                 'description' => 'Enable to verify SSL certificates. Disable for self-signed certificates.',
