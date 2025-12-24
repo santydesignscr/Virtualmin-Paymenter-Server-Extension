@@ -95,20 +95,6 @@ Clients can view:
 - Assigned domain
 - Button to access Virtualmin (generates a temporary login link)
 
-## Future Improvements
-
-This is the base version of the extension. The following improvements are planned:
-
-- [ ] Support for additional Virtualmin features (email, DNS, databases, etc.)
-- [ ] Resource configuration options (disk quotas, bandwidth, etc.)
-- [ ] Subdomain and alias management
-- [ ] MySQL/PostgreSQL database management
-- [ ] Email account management
-- [ ] DNS record management
-- [ ] Script installation (WordPress, etc.)
-- [ ] SSL/Let's Encrypt certificate support
-- [ ] PHP version configuration
-
 ## Reference Documentation
 
 - [Virtualmin Remote API Documentation](https://www.virtualmin.com/documentation/developer/http-api/)
