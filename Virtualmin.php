@@ -302,6 +302,7 @@ class Virtualmin extends Server
             $response = $this->request('disable-domain', [
                 'domain' => $properties['virtualmin_domain'],
                 'why' => 'Suspended by Paymenter',
+                'subservers' => '',
             ]);
             
             $data = $response->json();
@@ -333,6 +334,7 @@ class Virtualmin extends Server
         try {
             $response = $this->request('enable-domain', [
                 'domain' => $properties['virtualmin_domain'],
+                'subservers' => '',
             ]);
             
             $data = $response->json();
