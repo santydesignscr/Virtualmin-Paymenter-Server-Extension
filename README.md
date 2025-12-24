@@ -100,10 +100,30 @@ Clients can view:
 - [Virtualmin Remote API Documentation](https://www.virtualmin.com/documentation/developer/http-api/)
 - [Virtualmin Command-line API](https://www.virtualmin.com/documentation/developer/cli/)
 
-## Support
+## Contributing
 
-To report issues or suggestions, please open an issue in the Paymenter repository.
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
 This extension is distributed under the GNU General Public License v3.0 (GNU GPLv3).
+
+## Issues
+
+If you encounter any issues or have suggestions, please [open an issue](https://github.com/santydesignscr/Virtualmin-Paymenter-Server-Extension/issues) on GitHub.
+
+## Support
+
+For extension-related questions:
+- GitHub Issues: [Project Issues](https://github.com/santydesignscr/Virtualmin-Paymenter-Server-Extension/issues)
+- Paymenter Discord: [Join Community](https://discord.gg/paymenter)
+
+---
+
+**Developed by Santiago Rodriguez** | [GitHub](https://github.com/santydesignscr)
