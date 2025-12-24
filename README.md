@@ -1,123 +1,123 @@
 # Virtualmin Extension for Paymenter
 
-Esta extensión permite a Paymenter gestionar servidores virtuales en Virtualmin a través de su API remota.
+This extension allows Paymenter to manage virtual servers in Virtualmin through its remote API.
 
-## Características
+## Features
 
-- ✅ Crear dominios/servidores virtuales
-- ✅ Suspender y reactivar dominios
-- ✅ Eliminar dominios
-- ✅ Actualizar/cambiar de plan (template)
-- ✅ Generar enlaces de inicio de sesión
-- ✅ Soporte para templates de Virtualmin
+- ✅ Create virtual domains/servers
+- ✅ Suspend and unsuspend domains
+- ✅ Delete domains
+- ✅ Update/change plan (template)
+- ✅ Generate login links
+- ✅ Support for Virtualmin templates
 
-## Requisitos
+## Requirements
 
-- Virtualmin GPL o Pro instalado
-- Acceso root al servidor Virtualmin
-- API remota habilitada en Virtualmin (habilitada por defecto)
-- Puerto 10000 accesible (puerto por defecto de Webmin/Virtualmin)
+- Virtualmin GPL or Pro installed
+- Root access to the Virtualmin server
+- Remote API enabled in Virtualmin (enabled by default)
+- Port 10000 accessible (default port for Webmin/Virtualmin)
 
-## Instalación
+## Installation
 
-1. Copia el directorio `Virtualmin` a `extensions/Servers/Virtualmin` en tu instalación de Paymenter
-2. Ve al panel de administración de Paymenter
-3. Navega a Extensiones > Servidores
-4. Busca y habilita la extensión "Virtualmin"
+1. Copy the `Virtualmin` directory to `extensions/Servers/Virtualmin` in your Paymenter installation
+2. Go to the Paymenter administration panel
+3. Navigate to Extensions > Servers
+4. Find and enable the "Virtualmin" extension
 
-## Configuración
+## Configuration
 
-### Configuración de la Extensión
+### Extension Configuration
 
-Después de habilitar la extensión, configura los siguientes parámetros:
+After enabling the extension, configure the following parameters:
 
-- **Hostname**: La URL completa de tu servidor Virtualmin incluyendo el puerto (ej: `https://server.example.com:10000`)
-- **Username**: El nombre de usuario del administrador maestro (generalmente `root`)
-- **Password**: La contraseña del administrador maestro
-- **Verify SSL Certificate**: Habilitar para verificar certificados SSL. Desactivar para certificados autofirmados (por defecto: desactivado)
+- **Hostname**: The complete URL of your Virtualmin server including the port (e.g., `https://server.example.com:10000`)
+- **Username**: The master administrator username (usually `root`)
+- **Password**: The master administrator password
+- **Verify SSL Certificate**: Enable to verify SSL certificates. Disable for self-signed certificates (default: disabled)
 
-### Configuración del Producto
+### Product Configuration
 
-Al crear un producto con esta extensión, podrás seleccionar:
+When creating a product with this extension, you can select:
 
-- **Account Plan**: El plan de Virtualmin que se aplicará a los nuevos dominios y definirá las cuotas y límites
+- **Account Plan**: The Virtualmin plan that will be applied to new domains and will define quotas and limits
 
-### Configuración en el Checkout
+### Checkout Configuration
 
-Los clientes deberán proporcionar:
+Clients will need to provide:
 
-- **Domain**: El nombre de dominio para su servidor virtual (ej: `example.com`)
+- **Domain**: The domain name for their virtual server (e.g., `example.com`)
 
-## Comandos de API Utilizados
+## API Commands Used
 
-Esta extensión utiliza los siguientes comandos de la API de Virtualmin:
+This extension uses the following Virtualmin API commands:
 
-- `list-plans` - Lista los planes de cuenta disponibles
-- `list-domains` - Lista los dominios (usado para verificar la conexión)
-- `create-domain` - Crea un nuevo dominio virtual con features básicas (unix, dir, web, dns, mail)
-- `disable-domain` - Suspende un dominio con razón
-- `enable-domain` - Reactiva un dominio suspendido
-- `delete-domain` - Elimina un dominio completamente
-- `modify-domain` - Modifica un dominio y aplica nuevo plan con `--apply-plan`
-- `create-login-link` - Genera un enlace de inicio de sesión temporal
+- `list-plans` - Lists available account plans
+- `list-domains` - Lists domains (used to verify connection)
+- `create-domain` - Creates a new virtual domain with basic features (unix, dir, web, dns, mail)
+- `disable-domain` - Suspends a domain with reason
+- `enable-domain` - Unsuspends a suspended domain
+- `delete-domain` - Completely deletes a domain
+- `modify-domain` - Modifies a domain and applies new plan with `--apply-plan`
+- `create-login-link` - Generates a temporary login link
 
-## Funcionalidad
+## Functionality
 
-### Creación de Servidor
+### Server Creation
 
-Al crear un servicio, la extensión:
-1. Genera un nombre de usuario aleatorio (8 caracteres)
-2. Genera una contraseña segura aleatoria
-3. Crea el dominio virtual en Virtualmin con:
-   - Features habilitadas: Unix user, directorio, web, DNS, mail
-   - Plan seleccionado (aplica límites automáticamente con `--limits-from-plan`)
-   - Email del cliente como contacto
-4. Guarda las credenciales en las propiedades del servicio
+When creating a service, the extension:
+1. Generates a random username (8 characters)
+2. Generates a secure random password
+3. Creates the virtual domain in Virtualmin with:
+   - Enabled features: Unix user, directory, web, DNS, mail
+   - Selected plan (applies limits automatically with `--limits-from-plan`)
+   - Client's email as contact
+4. Saves credentials in the service properties
 
-### Suspensión y Reactivación
+### Suspension and Unsuspension
 
-- **Suspensión**: Deshabilita el dominio usando `disable-domain` con razón "Suspended by Paymenter"
-- **Reactivación**: Reactiva el dominio usando `enable-domain`
+- **Suspension**: Disables the domain using `disable-domain` with reason "Suspended by Paymenter"
+- **Unsuspension**: Re-enables the domain using `enable-domain`
 
-### Eliminación
+### Deletion
 
-Elimina completamente el dominio virtual y todas sus propiedades asociadas.
+Completely deletes the virtual domain and all its associated properties.
 
-### Actualización/Upgrade
+### Update/Upgrade
 
-Aplica un nuevo plan al dominio existente usando `modify-domain` con `--apply-plan`, lo que actualiza automáticamente las cuotas y límites según el nuevo plan.
+Applies a new plan to the existing domain using `modify-domain` with `--apply-plan`, which automatically updates quotas and limits according to the new plan.
 
-### Acciones Disponibles
+### Available Actions
 
-Los clientes pueden ver:
-- Username del servidor virtual
-- Password del servidor virtual
-- Dominio asignado
-- Botón para acceder a Virtualmin (genera un enlace de login temporal)
+Clients can view:
+- Virtual server username
+- Virtual server password
+- Assigned domain
+- Button to access Virtualmin (generates a temporary login link)
 
-## Próximas Mejoras
+## Future Improvements
 
-Esta es la versión base de la extensión. Las siguientes mejoras están planificadas:
+This is the base version of the extension. The following improvements are planned:
 
-- [ ] Soporte para funciones adicionales de Virtualmin (email, DNS, bases de datos, etc.)
-- [ ] Opciones de configuración de recursos (cuotas de disco, ancho de banda, etc.)
-- [ ] Gestión de subdominios y alias
-- [ ] Gestión de bases de datos MySQL/PostgreSQL
-- [ ] Gestión de cuentas de correo
-- [ ] Gestión de registros DNS
-- [ ] Instalación de scripts (WordPress, etc.)
-- [ ] Soporte para certificados SSL/Let's Encrypt
-- [ ] Configuración de versiones de PHP
+- [ ] Support for additional Virtualmin features (email, DNS, databases, etc.)
+- [ ] Resource configuration options (disk quotas, bandwidth, etc.)
+- [ ] Subdomain and alias management
+- [ ] MySQL/PostgreSQL database management
+- [ ] Email account management
+- [ ] DNS record management
+- [ ] Script installation (WordPress, etc.)
+- [ ] SSL/Let's Encrypt certificate support
+- [ ] PHP version configuration
 
-## Documentación de Referencia
+## Reference Documentation
 
 - [Virtualmin Remote API Documentation](https://www.virtualmin.com/documentation/developer/http-api/)
 - [Virtualmin Command-line API](https://www.virtualmin.com/documentation/developer/cli/)
 
-## Soporte
+## Support
 
-Para reportar problemas o sugerencias, por favor abre un issue en el repositorio de Paymenter.
+To report issues or suggestions, please open an issue in the Paymenter repository.
 
-## Licencia
+## License
 
-Esta extensión se distribuye bajo la misma licencia que Paymenter.
+This extension is distributed under the GNU General Public License v3.0 (GNU GPLv3).
