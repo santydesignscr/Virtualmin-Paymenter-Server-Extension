@@ -7,7 +7,7 @@ This extension allows Paymenter to manage virtual servers in Virtualmin through 
 - ✅ Create virtual domains/servers
 - ✅ Suspend and unsuspend domains
 - ✅ Delete domains
-- ✅ Update/change plan (template)
+- ✅ Update/change plan
 - ✅ Generate login links
 - ✅ Support for Virtualmin templates
 
