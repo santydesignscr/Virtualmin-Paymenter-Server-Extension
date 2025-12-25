@@ -24,6 +24,7 @@ class Virtualmin extends Server
         $host = rtrim($this->config('host'), '/');
         $username = $this->config('username');
         $password = $this->config('password');
+        $verifySSL = $this->config('verify_ssl', false);
         
         // Build the URL with parameters
         $url = $host . '/virtual-server/remote.cgi';
@@ -37,13 +38,17 @@ class Virtualmin extends Server
         }
         
         // Make the request with HTTP Basic Auth
-        $response = Http::withBasicAuth($username, $password)
-            ->withOptions(['verify' => $this->config('verify_ssl', false)])
-            ->asForm()
-            ->post($url, $params)
-            ->throw();
+        $request = Http::withBasicAuth($username, $password)
+            ->timeout(180)
+            ->connectTimeout(60)
+            ->asForm();
         
-        return $response;
+        // Configure SSL verification
+        if (!$verifySSL) {
+            $request = $request->withoutVerifying();
+        }
+        
+        return $request->post($url, $params)->throw();
     }
 
     /**
@@ -229,8 +234,10 @@ class Virtualmin extends Server
             'pass' => $password,
             'email' => $service->user->email,
             'unix' => '',
+            'webmin' => '',
             'dir' => '',
             'web' => '',
+            'ssl' => '',
             'dns' => '',
             'mail' => '',
             'limits-from-plan' => '',
@@ -266,7 +273,6 @@ class Virtualmin extends Server
                 [
                     'name' => 'Password',
                     'value' => $password,
-                    'hidden' => false,
                 ]
             );
             
@@ -439,25 +445,45 @@ class Virtualmin extends Server
         }
         
         try {
-            // Use create-login-link API to generate a temporary login URL
+            // Use create-login-link API with --domain to generate temporary login URL
             $response = $this->request('create-login-link', [
                 'domain' => $properties['virtualmin_domain'],
             ]);
             
             $data = $response->json();
             
-            if (isset($data['data']) && isset($data['data']['url'])) {
-                return $data['data']['url'];
+            // Check if successful and extract URL from output field
+            if (isset($data['status']) && $data['status'] === 'success' && isset($data['output'])) {
+                // The URL is in the output field, trim any whitespace
+                $loginUrl = trim($data['output']);
+                
+                // Replace the domain in the URL with the configured host
+                $host = rtrim($this->config('host'), '/');
+                
+                // Parse the login URL to extract the path and query
+                $urlParts = parse_url($loginUrl);
+                if (isset($urlParts['path'])) {
+                    $path = $urlParts['path'];
+                    $query = isset($urlParts['query']) ? '?' . $urlParts['query'] : '';
+                    
+                    // Construct the new URL with the configured host
+                    return $host . $path . $query;
+                }
+                
+                // If parsing fails, return the original URL
+                return $loginUrl;
             }
             
-            // Fallback: return the Virtualmin URL with domain info
+            // Fallback: return the Usermin URL (port 20000)
             $host = rtrim($this->config('host'), '/');
-            return $host . '/virtual-server/';
+            $userminHost = str_replace(':10000', ':20000', $host);
+            return $userminHost;
             
         } catch (Exception $e) {
-            // If create-login-link fails, return the base Virtualmin URL
+            // If create-login-link fails, return the Usermin URL
             $host = rtrim($this->config('host'), '/');
-            return $host . '/virtual-server/';
+            $userminHost = str_replace(':10000', ':20000', $host);
+            return $userminHost;
         }
     }
 
