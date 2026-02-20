@@ -39,7 +39,7 @@ class Virtualmin extends Server
         
         // Make the request with HTTP Basic Auth
         $request = Http::withBasicAuth($username, $password)
-            ->timeout(180)
+            ->timeout(300)
             ->connectTimeout(60)
             ->asForm();
         
