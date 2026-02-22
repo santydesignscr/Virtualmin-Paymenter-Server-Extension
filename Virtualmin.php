@@ -282,30 +282,22 @@ class Virtualmin extends Server
         $domain = $properties['domain'];
 
         $storedUsername = $service->properties()->where('key', 'virtualmin_username')->value('value');
-
-        // Retry-safe behavior: if domain already exists with same stored user, treat as success
-        if ($this->domainExistsWithUser($domain, $storedUsername)) {
-            $service->properties()->updateOrCreate(
-                ['key' => 'virtualmin_domain'],
-                [
-                    'name' => 'Domain',
-                    'value' => $domain,
-                ]
-            );
-
-            return true;
+        $storedPassword = $service->properties()->where('key', 'virtualmin_password')->value('value');
+        
+        // Reuse stored username if available; otherwise generate one
+        if (!empty($storedUsername)) {
+            $username = strtolower($storedUsername);
+        } else {
+            $username = Str::random(8);
+            // Ensure it starts with a letter
+            if (is_numeric($username[0])) {
+                $username = 'u' . substr($username, 1);
+            }
+            $username = strtolower($username);
         }
         
-        // Generate a random username (8 characters)
-        $username = Str::random(8);
-        // Ensure it starts with a letter
-        if (is_numeric($username[0])) {
-            $username = 'u' . substr($username, 1);
-        }
-        $username = strtolower($username);
-        
-        // Generate a random password
-        $password = Str::random(16);
+        // Reuse stored password if available; otherwise generate one
+        $password = !empty($storedPassword) ? $storedPassword : Str::random(16);
         
         // Prepare the parameters for domain creation
         $params = [
@@ -366,6 +358,19 @@ class Virtualmin extends Server
             
             return true;
         } catch (Exception $e) {
+            $errorMessage = strtolower($e->getMessage());
+
+            // Idempotent behavior: domain was already created by a previous attempt
+            if (
+                Str::contains($errorMessage, 'already hosting this domain') ||
+                Str::contains($errorMessage, 'domain already exists') ||
+                Str::contains($errorMessage, 'already exists')
+            ) {
+                if ($this->domainExistsWithUser($domain)) {
+                    return true;
+                }
+            }
+
             throw new Exception('Failed to create Virtualmin domain: ' . $e->getMessage());
         }
     }
