@@ -21,14 +21,39 @@ class Virtualmin extends Server
     private function domainExistsWithUser(string $domain, ?string $username = null): bool
     {
         try {
-            $response = $this->request('list-domains', ['multiline' => '']);
+            $response = $this->request('list-domains', [
+                'domain' => $domain,
+                'multiline' => '',
+            ]);
             $data = $response->json();
 
-            if (!isset($data['status']) || $data['status'] !== 'success' || !isset($data['data']) || !is_array($data['data'])) {
+            if (!isset($data['status']) || $data['status'] !== 'success') {
                 return false;
             }
 
-            foreach ($data['data'] as $virtualServer) {
+            $records = $data['data'] ?? null;
+
+            if (!is_array($records)) {
+                if (!empty($data['output']) && stripos((string) $data['output'], $domain) !== false) {
+                    if ($username === null || $username === '') {
+                        return true;
+                    }
+
+                    return stripos((string) $data['output'], (string) $username) !== false;
+                }
+
+                return false;
+            }
+
+            if (isset($records[$domain]) && is_array($records[$domain])) {
+                $records = [$records[$domain]];
+            }
+
+            foreach ($records as $virtualServer) {
+                if (!is_array($virtualServer)) {
+                    continue;
+                }
+
                 $virtualServerDomain = $virtualServer['domain'] ?? $virtualServer['name'] ?? null;
 
                 if (!$virtualServerDomain || strtolower($virtualServerDomain) !== strtolower($domain)) {
