@@ -12,6 +12,44 @@ use Illuminate\Support\Str;
 class Virtualmin extends Server
 {
     /**
+     * Check if a domain exists in Virtualmin and (optionally) matches username
+     *
+     * @param string $domain
+     * @param string|null $username
+     * @return bool
+     */
+    private function domainExistsWithUser(string $domain, ?string $username = null): bool
+    {
+        try {
+            $response = $this->request('list-domains', ['multiline' => '']);
+            $data = $response->json();
+
+            if (!isset($data['status']) || $data['status'] !== 'success' || !isset($data['data']) || !is_array($data['data'])) {
+                return false;
+            }
+
+            foreach ($data['data'] as $virtualServer) {
+                $virtualServerDomain = $virtualServer['domain'] ?? $virtualServer['name'] ?? null;
+
+                if (!$virtualServerDomain || strtolower($virtualServerDomain) !== strtolower($domain)) {
+                    continue;
+                }
+
+                if ($username === null || $username === '') {
+                    return true;
+                }
+
+                $virtualServerUser = $virtualServer['user'] ?? $virtualServer['username'] ?? null;
+                return $virtualServerUser !== null && strtolower($virtualServerUser) === strtolower($username);
+            }
+
+            return false;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
      * Make an HTTP request to the Virtualmin API
      *
      * @param string $program The API program/command to execute
@@ -215,6 +253,23 @@ class Virtualmin extends Server
         if (!isset($properties['domain'])) {
             throw new Exception('Domain is required');
         }
+
+        $domain = $properties['domain'];
+
+        $storedUsername = $service->properties()->where('key', 'virtualmin_username')->value('value');
+
+        // Retry-safe behavior: if domain already exists with same stored user, treat as success
+        if ($this->domainExistsWithUser($domain, $storedUsername)) {
+            $service->properties()->updateOrCreate(
+                ['key' => 'virtualmin_domain'],
+                [
+                    'name' => 'Domain',
+                    'value' => $domain,
+                ]
+            );
+
+            return true;
+        }
         
         // Generate a random username (8 characters)
         $username = Str::random(8);
@@ -229,7 +284,7 @@ class Virtualmin extends Server
         
         // Prepare the parameters for domain creation
         $params = [
-            'domain' => $properties['domain'],
+            'domain' => $domain,
             'user' => $username,
             'pass' => $password,
             'email' => $service->user->email,
@@ -250,6 +305,31 @@ class Virtualmin extends Server
         
         // Add description
         $params['desc'] = 'Created by Paymenter for ' . $service->user->email;
+
+        // Store the service properties first to avoid losing data if Virtualmin times out
+        $service->properties()->updateOrCreate(
+            ['key' => 'virtualmin_username'],
+            [
+                'name' => 'Username',
+                'value' => $username,
+            ]
+        );
+
+        $service->properties()->updateOrCreate(
+            ['key' => 'virtualmin_password'],
+            [
+                'name' => 'Password',
+                'value' => $password,
+            ]
+        );
+
+        $service->properties()->updateOrCreate(
+            ['key' => 'virtualmin_domain'],
+            [
+                'name' => 'Domain',
+                'value' => $domain,
+            ]
+        );
         
         try {
             $response = $this->request('create-domain', $params);
@@ -258,31 +338,6 @@ class Virtualmin extends Server
             if (!isset($data['status']) || $data['status'] !== 'success') {
                 throw new Exception($data['error'] ?? 'Failed to create virtual server');
             }
-            
-            // Store the service properties
-            $service->properties()->updateOrCreate(
-                ['key' => 'virtualmin_username'],
-                [
-                    'name' => 'Username',
-                    'value' => $username,
-                ]
-            );
-            
-            $service->properties()->updateOrCreate(
-                ['key' => 'virtualmin_password'],
-                [
-                    'name' => 'Password',
-                    'value' => $password,
-                ]
-            );
-            
-            $service->properties()->updateOrCreate(
-                ['key' => 'virtualmin_domain'],
-                [
-                    'name' => 'Domain',
-                    'value' => $properties['domain'],
-                ]
-            );
             
             return true;
         } catch (Exception $e) {
